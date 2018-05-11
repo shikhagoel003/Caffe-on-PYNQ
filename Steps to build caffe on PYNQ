@@ -1,0 +1,53 @@
+1. http://www.pynq.io/  -- download pynq image
+2. http://pynq.readthedocs.io/en/latest/appendix.html#writing-the-sd-card -- to copy image to sd-card
+3. Open gparted to increase the image size to full space
+4. Insert sd_card in PYNQ
+5. To link python3.6 to python3 in terminal
+   sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.5 1
+   sudo update-alternatives --install /usr/bin/python3 python3 /opt/python3.6/bin/python3.6 2
+   sudo update-alternatives --config python3
+6. Install dependencies for caffe
+   sudo apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler   --all these file go in /usr/lib/arm-linux-gnueabihf
+   sudo apt-get install --no-install-recommends libboost-all-dev
+   sudo apt-get install libgflags-dev libgoogle-glog-dev liblmdb-dev
+7. Install Protobuf 3 using 
+   `pip3 install protobuf`
+   This pops an error No module named 'lsb_release'
+   To solve this error
+   sudo ln -s /usr/share/pyshared/lsb_release.py /opt/python3.6/lib/python3.6/site-packages/lsb_release.py
+8. Add SWAP USB
+   Since PYNQ has limited RAM, in order to install Caffe extra memory will be required in the form of swap memory. In my test, a USB with size 2GB is large enough.
+   ```
+   mkswap /dev/sda
+   swapon /dev/sda
+   ```
+9. Install Caffe
+   https://github.com/weiliu89/caffe/tree/ssd - clone or download caffe from link provided. This is for Caffe ssd model.
+10. Copy the PYNQ version of Makefile.config (provided under PYNQ-object-Detection/caffe-ssd/) to caffe root directory
+    ```
+    make all
+    make test
+    make runtest
+    ```
+11. Unmount SWAP USB
+   `swapoff /dev/sda` 
+12. Install pycaffe with Python 3
+    ```
+    cd python
+    for req in $(cat requirements.txt); do sudo pip install $req; done
+    echo "export PYTHONPATH=$(pwd):$PYTHONPATH " >> ~/.bash_profile # to be able to call "import caffe" from Python after reboot
+    source ~/.bash_profile # Update shell 
+    cd .
+    ```   
+13. Export PYTHONPATH
+    Add the following line at the end of ".bashrc" file
+    ```
+    export PYTHONPATH=/home/xilinx/caffe/python
+    ```
+14. After all this, When python opend and type
+    import caff, error was shown 
+    module 'google.protobuf.symbol_database' has no attribute 'Default'
+
+    This made us relise, Instlled protobuf version 3.5 which was not compatible. So uninstalled this version and installed
+    sudo pip3 install protobuf==3.0.0b2
+
